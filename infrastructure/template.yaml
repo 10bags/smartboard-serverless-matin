@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SmartBoard - Serverless Audio Transcription (Participant User Story)
+
+Resources:
+
+  AudioBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: smartboard-audio-10bags
+
+  TranscriptionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.10
+      Handler: app.lambda_handler
+      CodeUri: ../backend/
+      Timeout: 60
+      MemorySize: 256
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonTranscribeFullAccess
+        - AmazonDynamoDBFullAccess
+      Events:
+        UploadApi:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: post
