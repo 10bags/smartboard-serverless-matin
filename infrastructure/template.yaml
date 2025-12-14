@@ -7,12 +7,11 @@ Resources:
   AudioBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: smartboard-audio-10bags-<your-unique-suffix> # must be globally unique
+      BucketName: smartboard-audio-10bags-858039354211 # must be globally unique
 
   TranscriptionFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: SmartBoardTranscriptionRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:

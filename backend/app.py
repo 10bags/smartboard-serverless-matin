@@ -7,7 +7,7 @@ dynamodb = boto3.resource('dynamodb')
 transcribe = boto3.client('transcribe')
 
 TABLE_NAME = "Transcriptions"
-BUCKET_NAME = "smartboard-audio-10bags"
+BUCKET_NAME = "smartboard-audio-10bags-858039354211"
 
 def lambda_handler(event, context):
     # Get filename from query parameter
