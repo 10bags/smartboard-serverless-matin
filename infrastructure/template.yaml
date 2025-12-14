@@ -1,8 +1,23 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: SmartBoard - Serverless Transcription API
+Description: SmartBoard - Serverless Audio Transcription
 
 Resources:
+
+  AudioBucket:
+    Type: AWS::S3::Bucket
+
+  TranscriptionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Transcriptions
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: FileName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: FileName
+          KeyType: HASH
 
   TranscriptionFunction:
     Type: AWS::Serverless::Function
@@ -13,12 +28,21 @@ Resources:
       Timeout: 30
       MemorySize: 256
       Policies:
-        - AmazonS3ReadOnlyAccess
-        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
         - AmazonTranscribeFullAccess
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref AudioBucket
+          TABLE_NAME: Transcriptions
       Events:
         UploadApi:
           Type: Api
           Properties:
             Path: /upload
             Method: post
+
+Outputs:
+  UploadApiUrl:
+    Description: API Gateway endpoint
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
