@@ -1,29 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: SmartBoard - Serverless Audio Transcription (Participant User Story)
+Description: SmartBoard - Serverless Transcription API
 
 Resources:
-
-  AudioBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: smartboard-audio-10bags-858039354211 # must be globally unique
-
-  TranscriptionFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
-        - arn:aws:iam::aws:policy/AmazonTranscribeFullAccess
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   TranscriptionFunction:
     Type: AWS::Serverless::Function
@@ -31,17 +10,15 @@ Resources:
       Runtime: python3.9
       Handler: app.lambda_handler
       CodeUri: ../backend/
-      Timeout: 120
+      Timeout: 30
       MemorySize: 256
-      Role: !GetAtt TranscriptionFunctionRole.Arn
+      Policies:
+        - AmazonS3ReadOnlyAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonTranscribeFullAccess
       Events:
         UploadApi:
           Type: Api
           Properties:
             Path: /upload
             Method: post
-
-Outputs:
-  UploadApiUrl:
-    Description: "URL for the Upload API"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
