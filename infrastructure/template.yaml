@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SmartBoard – Serverless Audio Transcription App
+
+Resources:
+
+  AudioBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: ['*']
+            AllowedMethods: ['PUT', 'GET']
+            AllowedHeaders: ['*']
+
+  TranscriptionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Transcriptions
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: JobName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: JobName
+          KeyType: HASH
+
+  UploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.9
+      Handler: upload.lambda_handler
+      CodeUri: ../backend/
+      Timeout: 30
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonTranscribeFullAccess
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref AudioBucket
+          TABLE_NAME: !Ref Transcriptions
+      Events:
+        UploadApi:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: post
+
+  StatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.9
+      Handler: status.lambda_handler
+      CodeUri: ../backend/
+      Timeout: 30
+      Policies:
+        - AmazonTranscribeFullAccess
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          TABLE_NAME: Transcriptions
+      Events:
+        StatusApi:
+          Type: Api
+          Properties:
+            Path: /status
+            Method: get
+
+Outputs:
+  UploadApiUrl:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
+  StatusApiUrl:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
+  BucketName:
+    Value: !Ref AudioBucket
