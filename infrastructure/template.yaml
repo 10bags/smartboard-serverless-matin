@@ -1,11 +1,17 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: SmartBoard - Serverless Audio Transcription
+Description: SmartBoard – Serverless Audio Transcription App
 
 Resources:
 
   AudioBucket:
     Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: ['*']
+            AllowedMethods: ['PUT', 'GET']
+            AllowedHeaders: ['*']
 
   TranscriptionsTable:
     Type: AWS::DynamoDB::Table
@@ -13,20 +19,19 @@ Resources:
       TableName: Transcriptions
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: FileName
+        - AttributeName: JobName
           AttributeType: S
       KeySchema:
-        - AttributeName: FileName
+        - AttributeName: JobName
           KeyType: HASH
 
-  TranscriptionFunction:
+  UploadFunction:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: python3.9
-      Handler: app.lambda_handler
+      Handler: upload.lambda_handler
       CodeUri: ../backend/
       Timeout: 30
-      MemorySize: 256
       Policies:
         - AmazonS3FullAccess
         - AmazonTranscribeFullAccess
@@ -42,7 +47,30 @@ Resources:
             Path: /upload
             Method: post
 
+  StatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.9
+      Handler: status.lambda_handler
+      CodeUri: ../backend/
+      Timeout: 30
+      Policies:
+        - AmazonTranscribeFullAccess
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          TABLE_NAME: Transcriptions
+      Events:
+        StatusApi:
+          Type: Api
+          Properties:
+            Path: /status
+            Method: get
+
 Outputs:
   UploadApiUrl:
-    Description: API Gateway endpoint
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
+  StatusApiUrl:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
+  BucketName:
+    Value: !Ref AudioBucket
