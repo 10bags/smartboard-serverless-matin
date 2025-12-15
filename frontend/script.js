@@ -2,9 +2,9 @@ let mediaRecorder;
 let audioBlob;
 let jobName;
 
-const UPLOAD_API = "PASTE_UPLOAD_API_HERE";
-const STATUS_API = "PASTE_STATUS_API_HERE";
-const BUCKET_URL = "https://YOUR_BUCKET_NAME.s3.amazonaws.com/";
+const UPLOAD_API = "https://82wg3untji.execute-api.ap-southeast-1.amazonaws.com/Prod/upload";
+const STATUS_API = "https://82wg3untji.execute-api.ap-southeast-1.amazonaws.com/Prod/status";
+const BUCKET_URL = "https://smartboard-transcription-audiobucket-48yujmy9fgrh.s3.amazonaws.com/";
 
 async function start() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

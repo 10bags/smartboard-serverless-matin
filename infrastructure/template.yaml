@@ -39,7 +39,7 @@ Resources:
       Environment:
         Variables:
           BUCKET_NAME: !Ref AudioBucket
-          TABLE_NAME: Transcriptions
+          TABLE_NAME: !Ref Transcriptions
       Events:
         UploadApi:
           Type: Api
