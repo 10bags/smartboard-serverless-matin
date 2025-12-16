@@ -13,19 +13,26 @@ TABLE = os.environ["TABLE_NAME"]
 
 def lambda_handler(event, context):
     try:
+        # Check for 'body' in event, which is typical for API Gateway POST
+        if 'body' not in event or not event['body']:
+            raise ValueError("Missing request body")
+            
         body = json.loads(event["body"])
-        audio_bytes = base64.b64decode(body["audio"])
+        # Expecting Base64 encoded audio string
+        audio_bytes = base64.b64decode(body["audio"]) 
     except Exception as e:
+        print(f"Error parsing body or decoding audio: {e}")
         return {
             "statusCode": 400,
+            # CORS header must still be included in the response payload
             "headers": {"Access-Control-Allow-Origin": "*"},
-            "body": json.dumps({"error": "Invalid request body"})
+            "body": json.dumps({"error": f"Invalid request body: {str(e)}"})
         }
 
     file_name = f"audio-{int(time.time())}.wav"
     job_name = f"job-{int(time.time())}"
 
-    # Upload to S3
+    # 1. Upload to S3
     s3.put_object(
         Bucket=BUCKET,
         Key=file_name,
@@ -33,15 +40,17 @@ def lambda_handler(event, context):
         ContentType="audio/wav"
     )
 
-    # Start Transcribe job
+    # 2. Start Transcribe job
     transcribe.start_transcription_job(
         TranscriptionJobName=job_name,
         Media={"MediaFileUri": f"s3://{BUCKET}/{file_name}"},
         MediaFormat="wav",
-        LanguageCode="en-US"
+        LanguageCode="en-US", # Use the correct language code for your expected input
+        # Note: If you want Transcribe to save the output to YOUR bucket, 
+        # add OutputBucketName=BUCKET here. Otherwise, it uses AWS's internal location.
     )
 
-    # Save job to DynamoDB
+    # 3. Save job to DynamoDB
     table = dynamodb.Table(TABLE)
     table.put_item(Item={
         "JobName": job_name,
@@ -51,10 +60,8 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Allow-Methods": "OPTIONS,POST"
-        },
+        # CORS header must still be included in the response payload
+        "headers": {"Access-Control-Allow-Origin": "*"},
+        # Simplified response body
         "body": json.dumps({"jobName": job_name})
     }
