@@ -4,16 +4,31 @@ Description: SmartBoard – Serverless Audio Transcription App
 
 Resources:
 
+  # --- GLOBAL API RESOURCE WITH CORS (Fix for the error) ---
+  SmartboardApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      # Applying CORS globally to all paths and methods
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'*'" # Allows all methods (GET, POST, OPTIONS, etc.)
+        AllowHeaders: "'*'"
+
+  # S3 bucket to store audio files
   AudioBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: smartboard-transcription-audiobucket
+      # CORS configuration is also necessary here for direct S3 uploads if you use them,
+      # but for API Gateway POST/GET, the API Cors is primary.
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: ['*']
-            AllowedMethods: ['PUT', 'POST', 'GET']
-            AllowedHeaders: ['*']
+          - AllowedOrigins: ["*"] 
+            AllowedMethods: ["PUT","POST","GET"]
+            AllowedHeaders: ["*"]
 
+  # DynamoDB table to store transcription jobs
   TranscriptionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -26,6 +41,7 @@ Resources:
         - AttributeName: JobName
           KeyType: HASH
 
+  # Lambda function to handle audio upload
   UploadFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -34,24 +50,26 @@ Resources:
       CodeUri: ../backend/
       Timeout: 30
       Policies:
+        # NOTE: Using full access policies is typically discouraged in production. 
+        # For a simple app, this is okay, but consider narrowing permissions later.
         - AmazonS3FullAccess
         - AmazonTranscribeFullAccess
         - AmazonDynamoDBFullAccess
       Environment:
         Variables:
           BUCKET_NAME: !Ref AudioBucket
-          TABLE_NAME: !Ref Transcriptions
+          TABLE_NAME: !Ref TranscriptionsTable
       Events:
         UploadApi:
           Type: Api
           Properties:
+            # Linking this function's event to the globally configured API
+            RestApiId: !Ref SmartboardApi
             Path: /upload
             Method: post
-            Cors:
-              AllowOrigins: ["*"]
-              AllowHeaders: ["*"]
-              AllowMethods: ["POST", "OPTIONS"]
+            # Cors property REMOVED as it is defined globally on SmartboardApi
 
+  # Lambda function to check transcription status
   StatusFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -60,26 +78,33 @@ Resources:
       CodeUri: ../backend/
       Timeout: 30
       Policies:
+        # NOTE: Consider narrowing these policies later.
         - AmazonTranscribeFullAccess
         - AmazonDynamoDBFullAccess
       Environment:
         Variables:
-          TABLE_NAME: !Ref Transcriptions
+          TABLE_NAME: !Ref TranscriptionsTable
       Events:
         StatusApi:
           Type: Api
           Properties:
+            # Linking this function's event to the globally configured API
+            RestApiId: !Ref SmartboardApi
             Path: /status
             Method: get
-            Cors:
-              AllowOrigins: ["*"]
-              AllowHeaders: ["*"]
-              AllowMethods: ["GET", "OPTIONS"]
+            # Cors property REMOVED as it is defined globally on SmartboardApi
 
 Outputs:
   UploadApiUrl:
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
+    Description: URL for the upload API
+    # Referencing the explicit API resource name (SmartboardApi)
+    Value: !Sub "https://${SmartboardApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
+
   StatusApiUrl:
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
+    Description: URL for the status API
+    # Referencing the explicit API resource name (SmartboardApi)
+    Value: !Sub "https://${SmartboardApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
+
   BucketName:
+    Description: Name of the audio S3 bucket
     Value: !Ref AudioBucket
