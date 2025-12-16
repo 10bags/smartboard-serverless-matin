@@ -11,11 +11,11 @@ Resources:
       BucketName: smartboard-transcription-audiobucket
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: ['*']
-            AllowedMethods: ['PUT', 'POST', 'GET']
-            AllowedHeaders: ['*']
+          - AllowedOrigins: ["*"]       # You can restrict to your Amplify URL later
+            AllowedMethods: ["PUT","POST","GET"]
+            AllowedHeaders: ["*"]
 
-  # DynamoDB table to store transcription job metadata
+  # DynamoDB table to store transcription jobs
   TranscriptionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -28,17 +28,7 @@ Resources:
         - AttributeName: JobName
           KeyType: HASH
 
-  # Central API Gateway
-  SmartBoardApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      Cors:
-        AllowMethods: "'OPTIONS,GET,POST'"
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowOrigin: "'*'"
-
-  # Lambda function to handle uploads and start Transcribe jobs
+  # Lambda function to handle audio upload
   UploadFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -53,14 +43,14 @@ Resources:
       Environment:
         Variables:
           BUCKET_NAME: !Ref AudioBucket
-          TABLE_NAME: !Ref Transcriptions
+          TABLE_NAME: !Ref TranscriptionsTable
       Events:
         UploadApi:
           Type: Api
           Properties:
             Path: /upload
             Method: post
-            RestApiId: !Ref SmartBoardApi
+            Cors: "'*'"   # SAM recognizes this simple CORS syntax
 
   # Lambda function to check transcription status
   StatusFunction:
@@ -75,19 +65,24 @@ Resources:
         - AmazonDynamoDBFullAccess
       Environment:
         Variables:
-          TABLE_NAME: !Ref Transcriptions
+          TABLE_NAME: !Ref TranscriptionsTable
       Events:
         StatusApi:
           Type: Api
           Properties:
             Path: /status
             Method: get
-            RestApiId: !Ref SmartBoardApi
+            Cors: "'*'"
 
 Outputs:
   UploadApiUrl:
-    Value: !Sub "https://${SmartBoardApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
+    Description: URL for the upload API
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
+
   StatusApiUrl:
-    Value: !Sub "https://${SmartBoardApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
+    Description: URL for the status API
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
+
   BucketName:
+    Description: Name of the audio S3 bucket
     Value: !Ref AudioBucket
