@@ -1,38 +1,62 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>SmartBoard Transcription</title>
+        <title>SmartBoard Transcription</title>
+       
     <link rel="stylesheet" href="style.css">
-    
+       
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
-    <div class="container">
-        <h2>SmartBoard Audio Transcription</h2>
 
-        <div class="button-group">
-            <button id="recordButton" onclick="start()">
-                <i class="fas fa-microphone"></i> Record
-            </button>
-            
-            <button id="stopButton" onclick="stop()" disabled>
-                <i class="fas fa-stop-circle"></i> Stop
-            </button>
-            
-            <button id="uploadButton" onclick="upload()" style="display: none;">
-                <i class="fas fa-cloud-upload-alt"></i> Upload
-            </button>
-            
-            <button id="statusButton" onclick="getTranscript()" disabled>
-                <i class="fas fa-sync-alt"></i> Get Transcription
-            </button>
+<body>
+       
+            <div class="top-bar">
+                <div class="logo">SmartBoard</div>
+                <div class="user-info">Welcome, User</div>
+            </div>
+
+        <div class="container">
+               
+                        <header class="meeting-header">
+                        <h2 class="meeting-title">Meeting Transcription</h2>
+                        <div id="meetingDatetime" class="meeting-datetime"></div>
+                       
+            <hr>
+                   
+        </header>
+
+                <div class="button-group">
+                        <button id="recordButton" onclick="start()">
+                                <i class="fas fa-microphone"></i> Record
+                            </button>
+                       
+                        <button id="stopButton" onclick="stop()" disabled>
+                                <i class="fas fa-stop-circle"></i> Stop
+                            </button>
+                       
+                        <button id="uploadButton" onclick="upload()" style="display: none;">
+                                <i class="fas fa-cloud-upload-alt"></i> Upload
+                            </button>
+                       
+                        <button id="statusButton" onclick="getTranscript()" disabled>
+                                <i class="fas fa-sync-alt"></i> Get Status
+                            </button>
+                    </div>
+
+                <audio id="player" controls></audio>
+
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar">0%</div>
         </div>
 
-        <audio id="player" controls></audio>
-
-        <pre id="output">Click 'Record' to begin capturing audio for transcription.</pre>
+                       
+        <pre id="output" class="output-initial"></pre>
+           
     </div>
 
+       
     <script src="script.js"></script>
 </body>
+
 </html>
