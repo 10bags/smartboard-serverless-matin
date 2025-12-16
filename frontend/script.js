@@ -4,27 +4,34 @@ let jobName;
 
 const UPLOAD_API = "https://82wg3untji.execute-api.ap-southeast-1.amazonaws.com/Prod/upload";
 const STATUS_API = "https://82wg3untji.execute-api.ap-southeast-1.amazonaws.com/Prod/status";
-const BUCKET_URL = "https://smartboard-transcription-audiobucket-48yujmy9fgrh.s3.amazonaws.com/";
 
 async function start() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
+
     let chunks = [];
 
     mediaRecorder.ondataavailable = e => chunks.push(e.data);
-    mediaRecorder.onstop = () => {
-        audioBlob = new Blob(chunks, { type: 'audio/webm' });
-        chunks = []; // reset for next recording
-        document.getElementById("output").textContent = "Recording stopped, ready to upload.";
 
-        // Play the recorded audio
+    mediaRecorder.onstop = () => {
+        audioBlob = new Blob(chunks, { type: "audio/wav" });
+        chunks = [];
+
         const player = document.getElementById("player");
         player.src = URL.createObjectURL(audioBlob);
-        player.play();
+
+        document.getElementById("output").textContent =
+            `Recording stopped. Audio size: ${audioBlob.size} bytes`;
     };
 
     mediaRecorder.start();
     document.getElementById("output").textContent = "Recording...";
+}
+
+function stop() {
+    if (mediaRecorder) {
+        mediaRecorder.stop();
+    }
 }
 
 async function upload() {
@@ -33,24 +40,22 @@ async function upload() {
         return;
     }
 
-    const fileName = `audio-${Date.now()}.webm`;
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const base64Audio = btoa(
+        String.fromCharCode(...new Uint8Array(arrayBuffer))
+    );
 
-    const formData = new FormData();
-    formData.append("filename", fileName);
-    formData.append("file", audioBlob);
+    const res = await fetch(UPLOAD_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audio: base64Audio })
+    });
 
-    try {
-        const res = await fetch(`${UPLOAD_API}?filename=${fileName}`, {
-            method: "POST",
-            body: formData
-        });
-        const data = await res.json();
-        jobName = data.job_name; // ensure matches your Lambda return
-        document.getElementById("output").textContent = "Uploaded. Job started.";
-    } catch (err) {
-        console.error(err);
-        document.getElementById("output").textContent = "Upload failed.";
-    }
+    const data = await res.json();
+    jobName = data.jobName;
+
+    document.getElementById("output").textContent =
+        "Uploaded. Transcription started.";
 }
 
 async function getTranscript() {
@@ -61,7 +66,7 @@ async function getTranscript() {
 
     const res = await fetch(`${STATUS_API}?job=${jobName}`);
     const data = await res.json();
+
     document.getElementById("output").textContent =
         data.text || data.status;
 }
-
