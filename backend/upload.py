@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     try:
         body = json.loads(event["body"])
         audio_bytes = base64.b64decode(body["audio"])
-    except Exception as e:
+    except Exception:
         return {
             "statusCode": 400,
             "headers": {"Access-Control-Allow-Origin": "*"},
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "headers": {
-            "Access-Control-Allow-Origin": "*",   # allows your Amplify site
+            "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Methods": "OPTIONS,POST"
         },
