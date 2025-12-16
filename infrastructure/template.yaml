@@ -4,14 +4,27 @@ Description: SmartBoard – Serverless Audio Transcription App
 
 Resources:
 
+  # --- GLOBAL API RESOURCE WITH CORS (Fix for the error) ---
+  SmartboardApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      # Applying CORS globally to all paths and methods
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'*'" # Allows all methods (GET, POST, OPTIONS, etc.)
+        AllowHeaders: "'*'"
+
   # S3 bucket to store audio files
   AudioBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: smartboard-transcription-audiobucket
+      # CORS configuration is also necessary here for direct S3 uploads if you use them,
+      # but for API Gateway POST/GET, the API Cors is primary.
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: ["*"]       # You can restrict to your Amplify URL later
+          - AllowedOrigins: ["*"] 
             AllowedMethods: ["PUT","POST","GET"]
             AllowedHeaders: ["*"]
 
@@ -37,6 +50,8 @@ Resources:
       CodeUri: ../backend/
       Timeout: 30
       Policies:
+        # NOTE: Using full access policies is typically discouraged in production. 
+        # For a simple app, this is okay, but consider narrowing permissions later.
         - AmazonS3FullAccess
         - AmazonTranscribeFullAccess
         - AmazonDynamoDBFullAccess
@@ -48,9 +63,11 @@ Resources:
         UploadApi:
           Type: Api
           Properties:
+            # Linking this function's event to the globally configured API
+            RestApiId: !Ref SmartboardApi
             Path: /upload
             Method: post
-            Cors: "'*'"   # SAM recognizes this simple CORS syntax
+            # Cors property REMOVED as it is defined globally on SmartboardApi
 
   # Lambda function to check transcription status
   StatusFunction:
@@ -61,6 +78,7 @@ Resources:
       CodeUri: ../backend/
       Timeout: 30
       Policies:
+        # NOTE: Consider narrowing these policies later.
         - AmazonTranscribeFullAccess
         - AmazonDynamoDBFullAccess
       Environment:
@@ -70,18 +88,22 @@ Resources:
         StatusApi:
           Type: Api
           Properties:
+            # Linking this function's event to the globally configured API
+            RestApiId: !Ref SmartboardApi
             Path: /status
             Method: get
-            Cors: "'*'"
+            # Cors property REMOVED as it is defined globally on SmartboardApi
 
 Outputs:
   UploadApiUrl:
     Description: URL for the upload API
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
+    # Referencing the explicit API resource name (SmartboardApi)
+    Value: !Sub "https://${SmartboardApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
 
   StatusApiUrl:
     Description: URL for the status API
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
+    # Referencing the explicit API resource name (SmartboardApi)
+    Value: !Sub "https://${SmartboardApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
 
   BucketName:
     Description: Name of the audio S3 bucket
