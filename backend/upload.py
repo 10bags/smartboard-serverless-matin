@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     try:
         body = json.loads(event["body"])
         audio_bytes = base64.b64decode(body["audio"])
-    except Exception:
+    except Exception as e:
         return {
             "statusCode": 400,
             "headers": {"Access-Control-Allow-Origin": "*"},
