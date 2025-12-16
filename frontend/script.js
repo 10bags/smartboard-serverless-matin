@@ -3,8 +3,8 @@ let audioBlob;
 let jobName;
 
 // !! REMEMBER TO REPLACE THESE WITH YOUR DEPLOYMENT OUTPUTS !!
-const UPLOAD_API = "YOUR_UPLOAD_API_URL_HERE"; 
-const STATUS_API = "YOUR_STATUS_API_URL_HERE"; 
+const UPLOAD_API = "https://nb541tjjxd.execute-api.ap-southeast-1.amazonaws.com/Prod/upload"; 
+const STATUS_API = "https://nb541tjjxd.execute-api.ap-southeast-1.amazonaws.com/Prod/status";
 
 // Helper function to safely convert ArrayBuffer (binary data) to Base64
 function arrayBufferToBase64(buffer) {
