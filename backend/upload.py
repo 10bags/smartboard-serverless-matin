@@ -12,9 +12,16 @@ BUCKET = os.environ["BUCKET_NAME"]
 TABLE = os.environ["TABLE_NAME"]
 
 def lambda_handler(event, context):
-    body = json.loads(event["body"])
+    try:
+        body = json.loads(event["body"])
+        audio_bytes = base64.b64decode(body["audio"])
+    except Exception as e:
+        return {
+            "statusCode": 400,
+            "headers": {"Access-Control-Allow-Origin": "*"},
+            "body": json.dumps({"error": "Invalid request body"})
+        }
 
-    audio_bytes = base64.b64decode(body["audio"])
     file_name = f"audio-{int(time.time())}.wav"
     job_name = f"job-{int(time.time())}"
 
@@ -43,14 +50,11 @@ def lambda_handler(event, context):
     })
 
     return {
-    "statusCode": 200,
-    "headers": {
-        "Access-Control-Allow-Origin": "https://main.d3s3zo60cd3amz.amplifyapp.com",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "OPTIONS,POST"
-    },
-    "body": json.dumps({
-        "jobName": job_name
-    })
-}
-
+        "statusCode": 200,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",   # allows your Amplify site
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
+        "body": json.dumps({"jobName": job_name})
+    }

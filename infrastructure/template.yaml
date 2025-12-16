@@ -7,10 +7,11 @@ Resources:
   AudioBucket:
     Type: AWS::S3::Bucket
     Properties:
+      BucketName: smartboard-transcription-audiobucket
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: ['*']
-            AllowedMethods: ['PUT', 'GET']
+          - AllowedOrigins: ['*']          # You can later restrict to your Amplify URL
+            AllowedMethods: ['PUT', 'POST', 'GET']
             AllowedHeaders: ['*']
 
   TranscriptionsTable:
@@ -46,6 +47,7 @@ Resources:
           Properties:
             Path: /upload
             Method: post
+            Cors: true   # Enables OPTIONS handling automatically
 
   StatusFunction:
     Type: AWS::Serverless::Function
@@ -59,13 +61,14 @@ Resources:
         - AmazonDynamoDBFullAccess
       Environment:
         Variables:
-          TABLE_NAME: Transcriptions
+          TABLE_NAME: !Ref Transcriptions
       Events:
         StatusApi:
           Type: Api
           Properties:
             Path: /status
             Method: get
+            Cors: true   # Enables OPTIONS handling automatically
 
 Outputs:
   UploadApiUrl:
