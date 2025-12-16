@@ -2,8 +2,8 @@ let mediaRecorder;
 let audioBlob;
 let jobName;
 
-const UPLOAD_API = "https://82wg3untji.execute-api.ap-southeast-1.amazonaws.com/Prod/upload";
-const STATUS_API = "https://82wg3untji.execute-api.ap-southeast-1.amazonaws.com/Prod/status";
+const UPLOAD_API = "<replace-with-new-upload-api>";
+const STATUS_API = "<replace-with-new-status-api>";
 
 async function start() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

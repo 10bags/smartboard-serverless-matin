@@ -10,7 +10,7 @@ Resources:
       BucketName: smartboard-transcription-audiobucket
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: ['*']          # You can later restrict to your Amplify URL
+          - AllowedOrigins: ['*']
             AllowedMethods: ['PUT', 'POST', 'GET']
             AllowedHeaders: ['*']
 
@@ -47,7 +47,10 @@ Resources:
           Properties:
             Path: /upload
             Method: post
-            Cors: true   # Enables OPTIONS handling automatically
+            Cors:
+              AllowOrigins: ["*"]
+              AllowHeaders: ["*"]
+              AllowMethods: ["POST", "OPTIONS"]
 
   StatusFunction:
     Type: AWS::Serverless::Function
@@ -68,7 +71,10 @@ Resources:
           Properties:
             Path: /status
             Method: get
-            Cors: true   # Enables OPTIONS handling automatically
+            Cors:
+              AllowOrigins: ["*"]
+              AllowHeaders: ["*"]
+              AllowMethods: ["GET", "OPTIONS"]
 
 Outputs:
   UploadApiUrl:
