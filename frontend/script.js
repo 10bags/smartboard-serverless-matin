@@ -156,15 +156,7 @@ async function getTranscript() {
         const data = await res.json();
         
         if (data.status === "COMPLETED") {
-            const translatedText = data.text || "N/A";
-            const rawText = data.raw_text || "N/A";
-            
-            // Display both the translated and raw text
-            outputElement.innerHTML = 
-                `<strong>TRANSCRIPTION COMPLETE:</strong><br><br>` +
-                `<strong>Unified English Translation:</strong><br>${translatedText}<br><br>` +
-                `<strong>Original Multi-Language Text (Mandarin/English):</strong><br>${rawText}`;
-
+            outputElement.textContent = "TRANSCRIPTION COMPLETE:\n\n" + data.text;
             setUIState('COMPLETE');
         } else if (data.status === "FAILED") {
             outputElement.textContent = `TRANSCRIPTION FAILED: The job status is ${data.status}. Reason: ${data.text || 'Check AWS Transcribe Console for details.'}`;

@@ -45,11 +45,9 @@ def lambda_handler(event, context):
         TranscriptionJobName=job_name,
         Media={"MediaFileUri": f"s3://{BUCKET}/{file_name}"},
         MediaFormat="wav",
-        
-        # --- NEW MULTI-LANGUAGE SETTINGS ---
-        IdentifyMultipleLanguages=True, 
-        LanguageOptions=["en-US", "zh-CN"] # Specify languages to look for
-        # -----------------------------------
+        LanguageCode="en-US", # Use the correct language code for your expected input
+        # Note: If you want Transcribe to save the output to YOUR bucket, 
+        # add OutputBucketName=BUCKET here. Otherwise, it uses AWS's internal location.
     )
 
     # 3. Save job to DynamoDB
