@@ -26,6 +26,15 @@ Resources:
         - AttributeName: JobName
           KeyType: HASH
 
+  SmartBoardApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowOrigins: ["*"]
+        AllowHeaders: ["*"]
+        AllowMethods: ["OPTIONS","GET","POST"]
+
   UploadFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -47,10 +56,7 @@ Resources:
           Properties:
             Path: /upload
             Method: post
-            Cors:
-              AllowOrigins: ["*"]
-              AllowHeaders: ["*"]
-              AllowMethods: ["POST", "OPTIONS"]
+            RestApiId: !Ref SmartBoardApi
 
   StatusFunction:
     Type: AWS::Serverless::Function
@@ -71,15 +77,12 @@ Resources:
           Properties:
             Path: /status
             Method: get
-            Cors:
-              AllowOrigins: ["*"]
-              AllowHeaders: ["*"]
-              AllowMethods: ["GET", "OPTIONS"]
+            RestApiId: !Ref SmartBoardApi
 
 Outputs:
   UploadApiUrl:
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
+    Value: !Sub "https://${SmartBoardApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
   StatusApiUrl:
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
+    Value: !Sub "https://${SmartBoardApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
   BucketName:
     Value: !Ref AudioBucket
