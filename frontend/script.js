@@ -156,7 +156,15 @@ async function getTranscript() {
         const data = await res.json();
         
         if (data.status === "COMPLETED") {
-            outputElement.textContent = "TRANSCRIPTION COMPLETE:\n\n" + data.text;
+            // --- NEW: Handle and display both raw (Mandarin) and translated (English) text ---
+            const translatedText = data.text || "N/A";
+            const rawText = data.raw_text || "N/A";
+            
+            outputElement.innerHTML = 
+                `<strong>TRANSCRIPTION COMPLETE:</strong><br><br>` +
+                `<strong>Unified English Translation:</strong><br>${translatedText}<br><br>` +
+                `<strong>Original Mandarin Text:</strong><br>${rawText}`;
+
             setUIState('COMPLETE');
         } else if (data.status === "FAILED") {
             outputElement.textContent = `TRANSCRIPTION FAILED: The job status is ${data.status}. Reason: ${data.text || 'Check AWS Transcribe Console for details.'}`;
@@ -175,4 +183,11 @@ async function getTranscript() {
 }
 
 // Initialize the UI state when the page loads
-window.onload = () => setUIState('IDLE');
+window.onload = () => {
+    // Attach event listeners after the page loads
+    recordButton.addEventListener('click', start);
+    stopButton.addEventListener('click', stop);
+    uploadButton.addEventListener('click', upload);
+    statusButton.addEventListener('click', getTranscript);
+    setUIState('IDLE');
+};
