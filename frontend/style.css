@@ -1,0 +1,145 @@
+/*
+ * File: style.css
+ * Description: Styling for the SmartBoard Transcription UI
+ */
+
+/* --- 1. Global & Body Styles --- */
+
+:root {
+    --primary-color: #2c7be5; /* Blue for primary actions */
+    --secondary-color: #6c757d; /* Gray for secondary actions/disabled */
+    --success-color: #008000; /* Green for success/complete */
+    --error-color: #dc3545; /* Red for recording/errors */
+    --background-light: #f8f9fa; /* Light background */
+    --background-white: #ffffff; /* White card/content background */
+    --text-dark: #212529;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+/* --- 2. Container and Typography --- */
+
+.container {
+    width: 100%;
+    max-width: 800px; /* Max width for comfortable reading */
+    padding: 30px;
+    background-color: var(--background-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+h2 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+/* --- 3. Button Styling --- */
+
+button {
+    cursor: pointer;
+    padding: 12px 24px;
+    margin: 5px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+    min-width: 150px; /* Increased min width for icon + text */
+}
+
+/* Icon Spacing */
+button i {
+    margin-right: 8px;
+}
+
+
+/* Specific Button Colors */
+#recordButton { /* Record */
+    background-color: var(--error-color); 
+    color: var(--background-white);
+}
+
+#stopButton { /* Stop */
+    background-color: var(--secondary-color);
+    color: var(--background-white);
+}
+
+#uploadButton { /* Upload */
+    background-color: var(--primary-color);
+    color: var(--background-white);
+}
+
+#statusButton { /* Get Transcription */
+    background-color: var(--success-color);
+    color: var(--background-white);
+}
+
+/* Button Hover Effects */
+button:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Disabled State */
+button:disabled {
+    background-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* --- 4. Audio Player and Output Area --- */
+
+#player {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+#output {
+    background-color: var(--background-light);
+    border: 1px solid #dee2e6;
+    border-radius: var(--border-radius);
+    padding: 15px;
+    margin-top: 30px;
+    white-space: pre-wrap; /* Preserve formatting but wrap long lines */
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100px;
+    overflow-x: auto;
+    color: var(--text-dark);
+}
+
+/* --- 5. Layout and Responsiveness --- */
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Allows buttons to wrap on small screens */
+    margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+        margin-top: 0;
+    }
+    button {
+        flex-grow: 1; 
+    }
+}

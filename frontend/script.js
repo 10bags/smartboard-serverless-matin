@@ -2,11 +2,60 @@ let mediaRecorder;
 let audioBlob;
 let jobName;
 
-// !! REMEMBER TO REPLACE THESE WITH YOUR DEPLOYMENT OUTPUTS !!
 const UPLOAD_API = "https://nb541tjjxd.execute-api.ap-southeast-1.amazonaws.com/Prod/upload"; 
 const STATUS_API = "https://nb541tjjxd.execute-api.ap-southeast-1.amazonaws.com/Prod/status";
 
-// Helper function to safely convert ArrayBuffer (binary data) to Base64
+// Get references to buttons
+const recordButton = document.getElementById('recordButton');
+const stopButton = document.getElementById('stopButton');
+const uploadButton = document.getElementById('uploadButton');
+const statusButton = document.getElementById('statusButton');
+const outputElement = document.getElementById('output');
+const playerElement = document.getElementById('player');
+
+// --- UI STATE MANAGEMENT ---
+
+function setUIState(state) {
+    // Reset all
+    recordButton.disabled = true;
+    stopButton.disabled = true;
+    uploadButton.style.display = 'none'; // Hide by default
+    statusButton.disabled = true;
+
+    switch (state) {
+        case 'IDLE':
+            recordButton.disabled = false;
+            outputElement.textContent = "Click 'Record' to begin capturing audio for transcription.";
+            break;
+        case 'RECORDING':
+            stopButton.disabled = false;
+            outputElement.textContent = "Recording... Click 'Stop' when finished.";
+            break;
+        case 'RECORDED':
+            recordButton.disabled = false;
+            uploadButton.style.display = 'inline-block'; // Show upload button
+            outputElement.textContent = `Recording stopped. Audio ready for upload. Size: ${audioBlob.size} bytes.`;
+            break;
+        case 'UPLOADING':
+            uploadButton.style.display = 'inline-block';
+            uploadButton.disabled = true;
+            outputElement.textContent = "Uploading... please wait.";
+            break;
+        case 'TRANSCRIPTION_QUEUED':
+            statusButton.disabled = false;
+            outputElement.textContent = `Upload complete. Transcription Job Name: ${jobName}. Click 'Get Transcription' to check status.`;
+            break;
+        case 'FETCHING_STATUS':
+            statusButton.disabled = true;
+            outputElement.textContent = `Checking status for job: ${jobName}...`;
+            break;
+        case 'COMPLETE':
+            statusButton.disabled = false;
+            break;
+    }
+}
+
+// Helper function for safe ArrayBuffer to Base64 conversion
 function arrayBufferToBase64(buffer) {
     let binary = '';
     const bytes = new Uint8Array(buffer);
@@ -17,64 +66,59 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
+// --- CORE FUNCTIONS ---
+
 async function start() {
+    setUIState('RECORDING');
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Use MediaRecorder options for better compatibility/quality if needed, 
-        // but 'audio/wav' is fine for this example.
         mediaRecorder = new MediaRecorder(stream);
         let chunks = [];
 
         mediaRecorder.ondataavailable = e => chunks.push(e.data);
 
         mediaRecorder.onstop = () => {
-            // NOTE: Changing Blob type to 'audio/wav' to be explicit for the backend
-            audioBlob = new Blob(chunks, { type: "audio/wav" }); 
+            audioBlob = new Blob(chunks, { type: "audio/wav" });
             chunks = [];
 
-            const player = document.getElementById("player");
-            player.src = URL.createObjectURL(audioBlob);
-
-            document.getElementById("output").textContent =
-                `Recording stopped. Audio size: ${audioBlob.size} bytes. Ready to upload.`;
+            playerElement.src = URL.createObjectURL(audioBlob);
             
             // Stop tracks to release microphone access
             stream.getTracks().forEach(track => track.stop());
+            
+            setUIState('RECORDED');
         };
 
         mediaRecorder.start();
-        document.getElementById("output").textContent = "Recording...";
     } catch (error) {
         console.error("Microphone access denied or failed:", error);
-        document.getElementById("output").textContent = "Error: Could not access microphone. Check permissions.";
+        outputElement.textContent = "Error: Could not access microphone. Check permissions.";
+        setUIState('IDLE');
     }
 }
 
 function stop() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
+        // The UI state change happens inside mediaRecorder.onstop
     }
 }
 
 async function upload() {
     if (!audioBlob) {
-        document.getElementById("output").textContent = "No audio to upload! Please record first.";
+        setUIState('IDLE');
         return;
     }
 
-    document.getElementById("output").textContent = "Uploading... please wait.";
-
+    setUIState('UPLOADING');
+    
     try {
         const arrayBuffer = await audioBlob.arrayBuffer();
-        // **CRITICAL FIX**: Using the safer conversion function
         const base64Audio = arrayBufferToBase64(arrayBuffer); 
 
         const res = await fetch(UPLOAD_API, {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json" 
-                // CORS headers are configured on the API Gateway, not needed here
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ audio: base64Audio })
         });
 
@@ -84,20 +128,22 @@ async function upload() {
 
         const data = await res.json();
         jobName = data.jobName;
-        document.getElementById("output").textContent = `Upload complete. Transcription Job Name: ${jobName}. Polling for status...`;
+        setUIState('TRANSCRIPTION_QUEUED');
     } catch (err) {
         console.error("Upload failed:", err);
-        document.getElementById("output").textContent = `Upload failed: ${err.message}. Check console for details.`;
+        outputElement.textContent = `Upload failed: ${err.message}. Check console for details.`;
+        setUIState('RECORDED'); // Allow re-upload attempt
     }
 }
 
 async function getTranscript() {
     if (!jobName) {
-        document.getElementById("output").textContent = "No transcription job running! Please record and upload first.";
+        outputElement.textContent = "No transcription job running! Please record and upload first.";
+        setUIState('IDLE');
         return;
     }
 
-    document.getElementById("output").textContent = `Checking status for job: ${jobName}...`;
+    setUIState('FETCHING_STATUS');
 
     try {
         const url = `${STATUS_API}?job=${jobName}`;
@@ -110,17 +156,23 @@ async function getTranscript() {
         const data = await res.json();
         
         if (data.status === "COMPLETED") {
-            document.getElementById("output").textContent = "TRANSCRIPTION COMPLETE:\n\n" + data.text;
+            outputElement.textContent = "TRANSCRIPTION COMPLETE:\n\n" + data.text;
+            setUIState('COMPLETE');
         } else if (data.status === "FAILED") {
-            document.getElementById("output").textContent = `TRANSCRIPTION FAILED: The job status is ${data.status}.`;
-        }
-        else {
-            // Show status while waiting
-            document.getElementById("output").textContent = `Job Status: ${data.status}. Click 'Get Transcription' again in a few seconds.`;
+            outputElement.textContent = `TRANSCRIPTION FAILED: The job status is ${data.status}. Reason: ${data.text || 'Check AWS Transcribe Console for details.'}`;
+            setUIState('COMPLETE');
+        } else {
+            // Still IN_PROGRESS or QUEUED
+            outputElement.textContent = `Job Status: ${data.status}. Click 'Get Transcription' again in a few seconds.`;
+            setUIState('TRANSCRIPTION_QUEUED'); // Re-enable the status button
         }
 
     } catch (err) {
         console.error("Failed to fetch transcription:", err);
-        document.getElementById("output").textContent = "Failed to fetch transcription. Check console for error details.";
+        outputElement.textContent = "Failed to fetch transcription. Check console for error details.";
+        setUIState('TRANSCRIPTION_QUEUED'); // Allow re-check
     }
 }
+
+// Initialize the UI state when the page loads
+window.onload = () => setUIState('IDLE');

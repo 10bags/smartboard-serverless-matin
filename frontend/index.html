@@ -2,19 +2,36 @@
 <html>
 <head>
     <title>SmartBoard Transcription</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <h2>SmartBoard Audio Transcription</h2>
+    <div class="container">
+        <h2>SmartBoard Audio Transcription</h2>
 
-    <button onclick="start()">Record</button>
-    <button onclick="stop()">Stop</button>
-    <button onclick="upload()">Upload</button>
-    <button onclick="getTranscript()">Get Transcription</button>
+        <div class="button-group">
+            <button id="recordButton" onclick="start()">
+                <i class="fas fa-microphone"></i> Record
+            </button>
+            
+            <button id="stopButton" onclick="stop()" disabled>
+                <i class="fas fa-stop-circle"></i> Stop
+            </button>
+            
+            <button id="uploadButton" onclick="upload()" style="display: none;">
+                <i class="fas fa-cloud-upload-alt"></i> Upload
+            </button>
+            
+            <button id="statusButton" onclick="getTranscript()" disabled>
+                <i class="fas fa-sync-alt"></i> Get Transcription
+            </button>
+        </div>
 
-    <br><br>
-    <audio id="player" controls></audio>
+        <audio id="player" controls></audio>
 
-    <pre id="output"></pre>
+        <pre id="output">Click 'Record' to begin capturing audio for transcription.</pre>
+    </div>
 
     <script src="script.js"></script>
 </body>
