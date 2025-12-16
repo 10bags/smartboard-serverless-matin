@@ -6,17 +6,17 @@
 /* --- 1. Global & Body Styles --- */
 
 :root {
-    --primary-color: #2c7be5;
+    --primary-color: #eb5e28;
     /* Blue for primary actions (Progress Bar, Logo, Title) */
     --secondary-color: #6c757d;
     /* Gray for secondary actions/disabled */
-    --success-color: #28a745;
+    --success-color: #27803c;
     /* Green for success/complete status button */
     --error-color: #dc3545;
     /* Red for recording/errors */
-    --background-light: #f8f9fa;
+    --background-light: #fffcf2;
     /* Light background */
-    --background-white: #ffffff;
+    --background-white: #fffcf2;
     /* White card/content background */
     --text-dark: #212529;
     --border-radius: 8px;
@@ -43,7 +43,8 @@ body {
     width: 100%;
     background-color: var(--primary-color);
     color: var(--background-white);
-    padding: 15px 30px;
+    /* Change 30px to 50px (or more) for wider space on the left/right */
+    padding: 15px 50px; 
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -221,8 +222,7 @@ button:disabled {
 
 .button-group {
     display: flex;
-    justify-content: flex-start;
-    /* Align buttons to the left */
+    justify-content: center;
     flex-wrap: wrap;
     margin-bottom: 20px;
 }
