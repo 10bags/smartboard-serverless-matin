@@ -45,18 +45,20 @@ def lambda_handler(event, context):
         TranscriptionJobName=job_name,
         Media={"MediaFileUri": f"s3://{BUCKET}/{file_name}"},
         MediaFormat="wav",
-        LanguageCode="en-US", # Use the correct language code for your expected input
-        # Note: If you want Transcribe to save the output to YOUR bucket, 
-        # add OutputBucketName=BUCKET here. Otherwise, it uses AWS's internal location.
+        LanguageCode="zh-CN",
+        Settings={
+            'ShowSpeakerLabels': True,
+            'MaxSpeakerLabels': 10  # Set this to the max people expected in the room
+        }
     )
 
-    # 3. Save job to DynamoDB
     table = dynamodb.Table(TABLE)
     table.put_item(Item={
         "JobName": job_name,
         "FileName": file_name,
         "Status": "IN_PROGRESS"
     })
+
 
     return {
         "statusCode": 200,

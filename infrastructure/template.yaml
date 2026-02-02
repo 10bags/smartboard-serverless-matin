@@ -80,7 +80,14 @@ Resources:
       Policies:
         # NOTE: Consider narrowing these policies later.
         - AmazonTranscribeFullAccess
+        - TranslateReadOnly
         - AmazonDynamoDBFullAccess
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: 
+                - "bedrock:InvokeModel"
+              Resource: "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0"
       Environment:
         Variables:
           TABLE_NAME: !Ref TranscriptionsTable
