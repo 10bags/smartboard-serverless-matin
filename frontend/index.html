@@ -44,7 +44,24 @@
             <div id="progressBar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
         </div>
 
+        <div id="speakerAssignmentSection" style="display:none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd;">
+            <h4 style="margin-top:0;"><i class="fas fa-user-edit"></i> Assign Speaker Names</h4>
+            <div id="speakerInputs" style="display: flex; flex-wrap: wrap; gap: 15px;">
+                </div>
+        </div>
+
         <pre id="output" class="output-initial"></pre>
+
+        <div id="todoSection" style="margin-top: 20px;">
+            <button id="todoBtn" onclick="toggleTodo()" style="display:none; width: 100%; background-color: #ffc107; color: #000; font-weight: bold; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">
+                <i class="fas fa-list-check"></i> View Action Items (AI Generated)
+            </button>
+            
+            <div id="todoContainer" style="display:none; margin-top: 15px; padding: 20px; background-color: #fff9db; border-left: 5px solid #ffc107; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h3 style="margin-top:0;"><i class="fas fa-tasks"></i> Meeting To-Do List</h3>
+                <pre id="todoOutput" style="white-space: pre-wrap; font-family: inherit; font-size: 1rem; color: #333;"></pre>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
