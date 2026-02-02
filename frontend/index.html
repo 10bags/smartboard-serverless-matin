@@ -3,12 +3,11 @@
 <head>
     <title>SmartBoard Transcription</title>
     <link rel="stylesheet" href="style.css">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h2>SmartBoard Audio Transcription</h2>
+        <h2><i class="fas fa-chalkboard-teacher"></i> SmartBoard Audio Transcription</h2>
 
         <div class="button-group">
             <button id="recordButton" onclick="start()">
@@ -30,7 +29,30 @@
 
         <audio id="player" controls></audio>
 
+        <hr>
+
+        <div id="speakerAssignmentSection" style="display:none;" class="assignment-box">
+            <h3><i class="fas fa-users"></i> Who is in the meeting?</h3>
+            <p><small>Assign names to the speaker IDs detected by the AI:</small></p>
+            <div id="speakerInputs" class="name-grid">
+                </div>
+        </div>
+
+        <div class="transcript-header">
+            <h3><i class="fas fa-file-alt"></i> Meeting Transcript</h3>
+        </div>
         <pre id="output">Click 'Record' to begin capturing audio for transcription.</pre>
+
+        <div class="todo-section">
+            <button id="todoBtn" onclick="toggleTodo()" style="display:none;" class="btn-todo">
+                <i class="fas fa-tasks"></i> Generate To-Do List
+            </button>
+            
+            <div id="todoContainer" style="display:none;" class="todo-card">
+                <h3><i class="fas fa-check-double"></i> Action Items</h3>
+                <pre id="todoOutput"></pre>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
